@@ -1,7 +1,8 @@
 from trello import TrelloClient
 import inspect
 import json
-import sys, getopt
+import sys
+import argparse
 import csv
 
 from settings import *
@@ -197,7 +198,52 @@ def volunteers (cards):
                         details.extend([0])
                 wr.writerow(details)
 
-# main
+# -- main --
+
+# argumemts
+parser = argparse.ArgumentParser(description='Helpers for farm share membership ')
+
+# overall totals
+parser.add_argument(
+    '--totals',
+    dest='totals',
+    action='store_true',
+    default=False,
+    help='Report out totals in each list.')
+
+# confirmed members
+parser.add_argument(
+    '--confirmed',
+    dest='confirmed',
+    action='store_true',
+    default=False,
+    help='How many confirmed members?')
+
+# possible members
+parser.add_argument(
+    '--possible',
+    dest='possible',
+    action='store_true',
+    default=False,
+    help='How many possible members?')
+    
+# level one totals
+parser.add_argument(
+    '--ones',
+    dest='ones',
+    action='store_true',
+    default=False,
+    help='How many Level One?')
+
+# get volunteer summary
+parser.add_argument(
+    '--volunteers',
+    dest='volunteers',
+    action='store_true',
+    default=False,
+    help='Collect details of all the volunteers and their interests')
+
+args = parser.parse_args()
 
 client = TrelloClient(
   api_key = settings_api_key,
@@ -207,25 +253,25 @@ client = TrelloClient(
 )
 
 board = client.get_board("dKKiaWEP")
-
 blists = board.all_lists
+cards = board.all_cards
 
 # get a full report from all lists
-# membersummary(blists)
+if args.totals:
+    membersummary(blists)
 
 # get the total confirmed members
-# confirmed_members(blists)
-
-print " " 
+if args.confirmed:
+    confirmed_members(blists)
 
 # get total possible members
-# possible_members(blists)
-
-print " " 
+if args.possible:
+    possible_members(blists)
 
 # get level one members
-# level_one_members(blists)
+if args.ones:
+    level_one_members(blists)
 
 # print out volunteer interests
-cards = board.all_cards
-volunteers(cards)
+if args.volunteers:
+    volunteers(cards)
