@@ -188,7 +188,7 @@ def volunteers (cards):
         roles = ["Helping with fundraising", "Organizing events and parties","Communications and social media","Cooking demos","Bake sales","Bookkeeping and membership management","Volunteering with local projects","Building connections between the farm share and other local projects","Joining the core organizing team","Something else (please email us!)"]
         
         export_roles = list(roles)
-        export_roles[:0] = ["Name","Date"]
+        export_roles[:0] = ["Name","Email","Card"]
    
     # write the roles
         wr.writerow(export_roles)
@@ -197,14 +197,28 @@ def volunteers (cards):
         for card in cards():
             if card.idList in confirmed: 
                 details = []
+                # get name after removing total cost info from card title
                 name_list = card.name.split("$", 1)
                 details.extend([name_list[0]])
+                
+                # get owner's email
+                all_emails = list(extract_emails(card.description.lower()))
+                if len(all_emails):
+                    details.append(all_emails[0])
+                else:
+                    details.append(" ")
+                
+                # card id
                 details.extend([card.id])
+                
+                # info on roles
                 for role in roles:
                     if role in card.description:
                         details.extend([1])
                     else:
                         details.extend([0])
+                
+                # write it
                 wr.writerow(details)
     
 def emails(cards, emails_csv):
