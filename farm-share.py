@@ -175,13 +175,12 @@ def printcsv (blists):
 # report out volunteer interests
 
 def volunteers (cards):
-    
-    print("Writing info on volunteer assignments to volunteers.csv")
-    
+        
     confirmed = ["54e4a423529df82c15d53b60","54e4a428a30d6e71153809e8","54e4a41bc622aa6dfe2ef8f3"]
+    volunteers_csv = "volunteers.csv"
 
 # prep a csv
-    with open('volunteers.csv', 'wb') as outputfile:
+    with open(volunteers_csv, 'wb') as outputfile:
         wr = csv.writer(outputfile, quoting=csv.QUOTE_ALL)
 
 # what are all the possible volunteer items?
@@ -193,9 +192,13 @@ def volunteers (cards):
     # write the roles
         wr.writerow(export_roles)
 
+        interested_volunteers = 0
+
     # go through all cards
         for card in cards():
             if card.idList in confirmed: 
+                
+                roles_chosen = 0
                 details = []
                 # get name after removing total cost info from card title
                 name_list = card.name.split("$", 1)
@@ -214,12 +217,18 @@ def volunteers (cards):
                 # info on roles
                 for role in roles:
                     if role in card.description:
+                        roles_chosen += 1
                         details.extend([1])
                     else:
                         details.extend([0])
                 
                 # write it
-                wr.writerow(details)
+                if roles_chosen > 0:
+                    interested_volunteers += 1
+                    wr.writerow(details)
+        
+        # report back
+        print("Wrote info on {0} possible volunteers to {1}".format(interested_volunteers, volunteers_csv))
     
 def emails(cards, emails_csv):
     print "Writing emails to a csv file"
