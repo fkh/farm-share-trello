@@ -4,9 +4,37 @@ import json
 import sys
 import argparse
 import csv
+import re
 
 from settings import *
 
+
+# Trello lists
+
+# ids for confirmed member lists
+# 54e4a423529df82c15d53b60 Check - paid in full 
+# 54e4a428a30d6e71153809e8 Check - installments
+# 54e4a41bc622aa6dfe2ef8f3 Online - paid
+
+confirmed = ["54e4a423529df82c15d53b60","54e4a428a30d6e71153809e8","54e4a41bc622aa6dfe2ef8f3"]
+
+# ids for possible member lists
+# 54e4a3f92ae6750e126138d8 Inbox 
+# 54eb610907daec1def86206c check - new
+
+possible = ["54e4a3f92ae6750e126138d8","54eb610907daec1def86206c"]
+
+# ids for level 1 list
+# 54e4a3f92ae6750e126138d8 Inbox 
+# 54eb610907daec1def86206c check - new
+
+level_one = ["54e6c629990bb93f7acd3ba4"]
+
+# for email searches
+regex = re.compile(("([a-z0-9!#$%&'*+\/=?^_`{|}~-]+(?:\.[a-z0-9!#$%&'*+\/=?^_`"
+                    "{|}~-]+)*(@|\sat\s)(?:[a-z0-9](?:[a-z0-9-]*[a-z0-9])?(\.|"
+                    "\sdot\s))+[a-z0-9](?:[a-z0-9-]*[a-z0-9])?)"))
+    
 ## print out all the lists in csv-friendly format
 def membersummary (blists):
     for blist in blists():
@@ -40,13 +68,6 @@ def membersummary (blists):
 
 ## summary of confirmed members 
 def confirmed_members (blists):
-
-# ids for confirmed member lists
-# 54e4a423529df82c15d53b60 Check - paid in full 
-# 54e4a428a30d6e71153809e8 Check - installments
-# 54e4a41bc622aa6dfe2ef8f3 Online - paid
-
-    confirmed = ["54e4a423529df82c15d53b60","54e4a428a30d6e71153809e8","54e4a41bc622aa6dfe2ef8f3"]
 
 # totals for confirmed members
     levelone = 0
@@ -86,12 +107,6 @@ def confirmed_members (blists):
 ## summary of possible members 
 def possible_members (blists):
 
-# ids for possible member lists
-# 54e4a3f92ae6750e126138d8 Inbox 
-# 54eb610907daec1def86206c check - new
-
-    possible = ["54e4a3f92ae6750e126138d8","54eb610907daec1def86206c"]
-
 # totals for possible members
     levelone = 0
     leveltwo = 0
@@ -129,12 +144,6 @@ def possible_members (blists):
     
 ## summary of possible members 
 def level_one_members (blists):
-
-    # ids for level 1 list
-    # 54e4a3f92ae6750e126138d8 Inbox 
-    # 54eb610907daec1def86206c check - new
-
-    level_one = ["54e6c629990bb93f7acd3ba4"]
 
     # totals for possible members
     levelone = 0
@@ -197,6 +206,25 @@ def volunteers (cards):
                     else:
                         details.extend([0])
                 wr.writerow(details)
+    
+def emails(cards, emails_csv):
+    print "Writing emails to a csv file"
+
+    # loop through the cards
+    # prep a csv
+    with open(emails_csv, 'wb') as outputfile:
+
+        email_list = list()
+        for card in cards():
+            if card.idList in confirmed:
+                for email in (extract_emails(card.description.lower())):
+                    email_list.append(email)
+                    outputfile.write('{0}\n'.format(email))
+        print "Extracted {0} emails, saved to {1}".format(len(email_list), emails_csv)
+
+# thanks to https://gist.github.com/dideler/5219706
+def extract_emails(text): 
+    return (email[0] for email in re.findall(regex, text))
 
 # -- main --
 
@@ -243,6 +271,14 @@ parser.add_argument(
     default=False,
     help='Collect details of all the volunteers and their interests')
 
+# get emails
+parser.add_argument(
+    '--emails',
+    dest='emails',
+    action='store_true',
+    default=False,
+    help='All emails for confirmed members')
+
 args = parser.parse_args()
 
 client = TrelloClient(
@@ -275,3 +311,7 @@ if args.ones:
 # print out volunteer interests
 if args.volunteers:
     volunteers(cards)
+
+# extract all the emails
+if args.emails:
+    emails(cards, 'emails.csv')
