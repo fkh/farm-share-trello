@@ -15,20 +15,21 @@ from settings import *
 # 54e4a423529df82c15d53b60 Check - paid in full 
 # 54e4a428a30d6e71153809e8 Check - installments
 # 54e4a41bc622aa6dfe2ef8f3 Online - paid
-
 confirmed = ["54e4a423529df82c15d53b60","54e4a428a30d6e71153809e8","54e4a41bc622aa6dfe2ef8f3"]
 
 # ids for possible member lists
 # 54e4a3f92ae6750e126138d8 Inbox 
 # 54eb610907daec1def86206c check - new
-
 possible = ["54e4a3f92ae6750e126138d8","54eb610907daec1def86206c"]
 
 # ids for level 1 list
 # 54e4a3f92ae6750e126138d8 Inbox 
 # 54eb610907daec1def86206c check - new
-
 level_one = ["54e6c629990bb93f7acd3ba4"]
+
+# ids for people who haven't paid yet
+# 54eb610907daec1def86206c check - new
+new_check = ["54eb610907daec1def86206c"]
 
 # for email searches
 regex = re.compile(("([a-z0-9!#$%&'*+\/=?^_`{|}~-]+(?:\.[a-z0-9!#$%&'*+\/=?^_`"
@@ -175,9 +176,6 @@ def printcsv (blists):
 # report out volunteer interests
 
 def volunteers (cards):
-        
-    confirmed = ["54e4a423529df82c15d53b60","54e4a428a30d6e71153809e8","54e4a41bc622aa6dfe2ef8f3"]
-    volunteers_csv = "volunteers.csv"
 
 # prep a csv
     with open(volunteers_csv, 'wb') as outputfile:
@@ -230,20 +228,29 @@ def volunteers (cards):
         # report back
         print("Wrote info on {0} possible volunteers to {1}".format(interested_volunteers, volunteers_csv))
     
-def emails(cards, emails_csv):
+def emails(cards):
     print "Writing emails to a csv file"
 
-    # loop through the cards
-    # prep a csv
-    with open(emails_csv, 'wb') as outputfile:
-
-        email_list = list()
-        for card in cards():
-            if card.idList in confirmed:
-                for email in (extract_emails(card.description.lower())):
-                    email_list.append(email)
-                    outputfile.write('{0}\n'.format(email))
-        print "Extracted {0} emails, saved to {1}".format(len(email_list), emails_csv)
+    # paid members
+    with open('paid.csv', 'wb') as paid_file:
+        with open('unpaid.csv', 'wb') as possible_file:
+            with open('all.csv', 'wb') as all_file:
+                paid_email_list = list()
+                possible_email_list = list()
+                for card in cards():
+                    if card.idList in confirmed:
+                        for email in (extract_emails(card.description.lower())):
+                            paid_email_list.append(email)
+                            paid_file.write('{0}\n'.format(email))
+                            all_file.write('{0}\n'.format(email))
+                    if card.idList in new_check:
+                        for email in (extract_emails(card.description.lower())):
+                            possible_email_list.append(email)
+                            possible_file.write('{0}\n'.format(email))
+                            all_file.write('{0}\n'.format(email))
+                print "Extracted {0} emails of paid members, saved to paid.csv".format(len(paid_email_list))
+                print "Extracted {0} emails of unpaid possible members, saved to unpaid.csv".format(len(possible_email_list))
+                print "all.csv contains both lists"
 
 # thanks to https://gist.github.com/dideler/5219706
 def extract_emails(text): 
@@ -337,4 +344,4 @@ if args.volunteers:
 
 # extract all the emails
 if args.emails:
-    emails(cards, 'emails.csv')
+    emails(cards)
