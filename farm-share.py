@@ -15,7 +15,9 @@ from settings import *
 # 54e4a423529df82c15d53b60 Check - paid in full 
 # 54e4a428a30d6e71153809e8 Check - installments
 # 54e4a41bc622aa6dfe2ef8f3 Online - paid
-confirmed = ["54e4a423529df82c15d53b60","54e4a428a30d6e71153809e8","54e4a41bc622aa6dfe2ef8f3"]
+# 551ac183a3730ba8fe2ba1ca Level 1 paid deposit 
+
+confirmed = ["54e4a423529df82c15d53b60","54e4a428a30d6e71153809e8","54e4a41bc622aa6dfe2ef8f3", "551ac183a3730ba8fe2ba1ca"]
 
 # ids for possible member lists
 # 54e4a3f92ae6750e126138d8 Inbox 
@@ -176,6 +178,8 @@ def printcsv (blists):
 # report out volunteer interests
 
 def volunteers (cards):
+
+    volunteers_csv = 'volunteers.csv'
 
 # prep a csv
     with open(volunteers_csv, 'wb') as outputfile:
