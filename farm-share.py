@@ -100,12 +100,25 @@ def members_report (cards):
             # card id
             details.extend([card.id])
             details.extend([card.idList])
-            for label in card.labels:
-               details.extend([label.get("name")])
+
+            # get share details
             details.append(share_finder(card.description, "Fruit share, 18 weeks", "Fruit"))
             details.append(share_finder(card.description, "Cheese share, 18 weeks", "Cheese"))
             details.append(share_finder(card.description, "Value-added share, 25 weeks", "Extras"))
             details.append(share_finder(card.description, "I'd rather pay $50 now", "NV"))
+
+            # get level first
+            for label in card.labels:
+                this_label = [label.get("name")]
+                if this_label[0:5] = "Level":
+                    details.append(this_label)
+            
+            # ... then check/card payment
+            for label in card.labels:
+                this_label = [label.get("name")]
+                if (this_label = "Check") or (this_label = "Online"):
+                    details.append(this_label)
+
             # details.append(str([card.description]))
             
             # write it
