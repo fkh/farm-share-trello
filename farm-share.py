@@ -29,6 +29,12 @@ possible = ["54e4a3f92ae6750e126138d8","54eb610907daec1def86206c"]
 # 54eb610907daec1def86206c check - new
 level_one = ["54e6c629990bb93f7acd3ba4"]
 
+# ids for level 1 with no deposit
+level_one_unpaid = ["54e6c629990bb93f7acd3ba4"]
+
+# ids for level 1 with deposit paid
+level_one_deposit = ["551ac183a3730ba8fe2ba1ca"]
+
 # ids for people who haven't paid yet
 # 54eb610907daec1def86206c check - new
 new_check = ["54eb610907daec1def86206c"]
@@ -68,6 +74,41 @@ def membersummary (blists):
         if levelfour > 0:
             print "{0}, {1}, L4, {2} ".format(blist.id, blist.name, levelfour)
     return
+
+def allmembers (cards):
+
+    members_csv = 'members.csv'
+
+# prep a csv
+    with open(members_csv, 'wb') as outputfile:
+        wr = csv.writer(outputfile, quoting=csv.QUOTE_ALL)
+
+    # go through all cards
+        for card in cards():
+            details = []
+            # get name after removing total cost info from card title
+            name_list = card.name.split("$", 1)
+            details.extend([card.name])
+            
+            # get owner's email
+            all_emails = list(extract_emails(card.description.lower()))
+            if len(all_emails):
+                details.append(all_emails[0])
+            else:
+                details.append(" ")
+            
+            # card id
+            details.extend([card.id])
+            details.extend([card.idList])
+            for label in card.labels:
+               details.extend([label.get("name")])
+            details.append(str([card.description]))
+            
+            # write it
+            wr.writerow(details)
+        
+        # report back
+        # print("Wrote info on {0} possible volunteers to {1}".format(interested_volunteers, volunteers_csv))
 
 ## summary of confirmed members 
 def confirmed_members (blists):
@@ -256,13 +297,31 @@ def emails(cards):
                 print "Extracted {0} emails of unpaid possible members, saved to unpaid.csv".format(len(possible_email_list))
                 print "all.csv contains both lists"
 
+def emails_level_ones(cards):
+    print "Writing level 1 emails to a csv file"
+    with open('level-1-deposit.csv', 'wb') as paid_file:
+        with open('level-1-unpaid.csv', 'wb') as possible_file:
+            paid_email_list = list()
+            possible_email_list = list()
+            for card in cards():
+                if card.idList in level_one_deposit:
+                    for email in (extract_emails(card.description.lower())):
+                        paid_email_list.append(email)
+                        paid_file.write('{0} {1}\n'.format(card.name, email))
+                if card.idList in level_one_unpaid:
+                    for email in (extract_emails(card.description.lower())):
+                        possible_email_list.append(email)
+                        possible_file.write('{0} {1}\n'.format(card.name, email))
+            print "Extracted {0} emails of level 1 members, saved to level-1-deposit.csv".format(len(paid_email_list))
+            print "Extracted {0} emails of unpaid level 1 members, saved to level-1-unpaid.csv".format(len(possible_email_list))
+
 # thanks to https://gist.github.com/dideler/5219706
 def extract_emails(text): 
     return (email[0] for email in re.findall(regex, text))
 
 # -- main --
 
-# argumemts
+# arguments
 parser = argparse.ArgumentParser(description='Helpers for farm share membership ')
 
 # overall totals
@@ -313,6 +372,14 @@ parser.add_argument(
     default=False,
     help='All emails for confirmed members')
 
+# get all members
+parser.add_argument(
+    '--members',
+    dest='members',
+    action='store_true',
+    default=False,
+    help='All member names')
+
 args = parser.parse_args()
 
 client = TrelloClient(
@@ -341,6 +408,7 @@ if args.possible:
 # get level one members
 if args.ones:
     level_one_members(blists)
+    emails_level_ones(cards)
 
 # print out volunteer interests
 if args.volunteers:
@@ -349,3 +417,7 @@ if args.volunteers:
 # extract all the emails
 if args.emails:
     emails(cards)
+    
+# list all the members
+if args.members:
+    allmembers(cards)
