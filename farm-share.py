@@ -75,7 +75,7 @@ def membersummary (blists):
             print "{0}, {1}, L4, {2} ".format(blist.id, blist.name, levelfour)
     return
 
-def allmembers (cards):
+def members_report (cards):
 
     members_csv = 'members.csv'
 
@@ -102,14 +102,15 @@ def allmembers (cards):
             details.extend([card.idList])
             for label in card.labels:
                details.extend([label.get("name")])
-            details.append(str([card.description]))
+            details.append(share_finder(card.description, "Fruit share, 18 weeks", "Fruit"))
+            details.append(share_finder(card.description, "Cheese share, 18 weeks", "Cheese"))
+            details.append(share_finder(card.description, "Value-added share, 25 weeks", "Extras"))
+            details.append(share_finder(card.description, "I'd rather pay $50 now", "NV"))
+            # details.append(str([card.description]))
             
             # write it
             wr.writerow(details)
         
-        # report back
-        # print("Wrote info on {0} possible volunteers to {1}".format(interested_volunteers, volunteers_csv))
-
 ## summary of confirmed members 
 def confirmed_members (blists):
 
@@ -315,9 +316,21 @@ def emails_level_ones(cards):
             print "Extracted {0} emails of level 1 members, saved to level-1-deposit.csv".format(len(paid_email_list))
             print "Extracted {0} emails of unpaid level 1 members, saved to level-1-unpaid.csv".format(len(possible_email_list))
 
+
+# -- helpers --
+
 # thanks to https://gist.github.com/dideler/5219706
 def extract_emails(text): 
     return (email[0] for email in re.findall(regex, text))
+
+# is this person getting fruit?
+
+def share_finder(card_description, share_phrase, for_report):
+    
+    if card_description.find(share_phrase) > 0 :
+        return for_report
+    else:
+        return " "
 
 # -- main --
 
@@ -378,7 +391,7 @@ parser.add_argument(
     dest='members',
     action='store_true',
     default=False,
-    help='All member names')
+    help='Full member report')
 
 args = parser.parse_args()
 
@@ -420,4 +433,4 @@ if args.emails:
     
 # list all the members
 if args.members:
-    allmembers(cards)
+    members_report(cards)
