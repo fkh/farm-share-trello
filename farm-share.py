@@ -85,7 +85,7 @@ def members_report (cards):
         wr = csv.writer(outputfile, quoting=csv.QUOTE_ALL)
 
         # write the header
-        file_header = ["Name","Email","Fruit","Cheese","Value-added","Volunteer","Level","Payment","List"]
+        file_header = ["Name","Email","Fruit","Cheese","Value-added","Volunteer","Level", "Membership status","List","Total","Payment by"]
         wr.writerow(file_header)
     
     # go through all cards
@@ -94,7 +94,7 @@ def members_report (cards):
             
             # get name after removing total cost info from card title
             name_list = card.name.split("$", 1)
-            details.extend([name_list[0]])
+            details.extend([name_list[0]]) 
             
             # get owner's email
             all_emails = list(extract_emails(card.description.lower()))
@@ -111,18 +111,33 @@ def members_report (cards):
 
             # get level first
             for label in card.labels:
+                
                 this_label = label.get("name")
                 if this_label[0:5] == "Level":
                     details.append(this_label)
             
 
+            # membership status
+            if card.idList in confirmed:
+                details.append("Paid member")
+            else:
+                details.append("Unconfirmed")
+            
             # get Trello list 
             details.append(share_group(card.idList))
             
             # get other members (up to three)
-            # NOT DONE
+            for item in card.description.split("\n"):
+                if "Share partner #1 - name" in item:
+                    print item.split("Share partner #1 - name",1)[1].strip() ## clean this up with a function to report out member names,
+                                                                             ## with no trailing spaces or colons, for all three possible
+                                                                             ## share partners.
             
             # details.append(str([card.description]))
+            
+            #total membership amount
+            if len(name_list) > 1 :
+                details.extend([name_list[1]])
             
             # check/card payment last because not everyone has this label set
             for label in card.labels:
