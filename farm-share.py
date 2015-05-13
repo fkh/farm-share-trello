@@ -5,6 +5,7 @@ import sys
 import argparse
 import csv
 import re
+import copy
 
 from settings import *
 
@@ -83,12 +84,17 @@ def members_report (cards):
     with open(members_csv, 'wb') as outputfile:
         wr = csv.writer(outputfile, quoting=csv.QUOTE_ALL)
 
+        # write the header
+        file_header = ["Name","Email","Fruit","Cheese","Value-added","Volunteer","Level","Payment","List"]
+        wr.writerow(file_header)
+    
     # go through all cards
         for card in cards():
             details = []
+            
             # get name after removing total cost info from card title
             name_list = card.name.split("$", 1)
-            details.extend([card.name])
+            details.extend([name_list[0]])
             
             # get owner's email
             all_emails = list(extract_emails(card.description.lower()))
@@ -96,10 +102,6 @@ def members_report (cards):
                 details.append(all_emails[0])
             else:
                 details.append(" ")
-            
-            # card id
-            details.extend([card.id])
-            details.extend([card.idList])
 
             # get share details
             details.append(share_finder(card.description, "Fruit share, 18 weeks", "Fruit"))
@@ -109,17 +111,24 @@ def members_report (cards):
 
             # get level first
             for label in card.labels:
-                this_label = [label.get("name")]
-                if this_label[0:5] = "Level":
+                this_label = label.get("name")
+                if this_label[0:5] == "Level":
                     details.append(this_label)
             
-            # ... then check/card payment
-            for label in card.labels:
-                this_label = [label.get("name")]
-                if (this_label = "Check") or (this_label = "Online"):
-                    details.append(this_label)
 
+            # get Trello list 
+            details.append(share_group(card.idList))
+            
+            # get other members (up to three)
+            # NOT DONE
+            
             # details.append(str([card.description]))
+            
+            # check/card payment last because not everyone has this label set
+            for label in card.labels:
+                this_label = label.get("name")
+                if (this_label == "check") or (this_label == "online"):
+                    details.append(this_label)
             
             # write it
             wr.writerow(details)
@@ -336,8 +345,7 @@ def emails_level_ones(cards):
 def extract_emails(text): 
     return (email[0] for email in re.findall(regex, text))
 
-# is this person getting fruit?
-
+# is this person getting fruit, cheese, etc?
 def share_finder(card_description, share_phrase, for_report):
     
     if card_description.find(share_phrase) > 0 :
@@ -345,6 +353,12 @@ def share_finder(card_description, share_phrase, for_report):
     else:
         return " "
 
+# look up the list name to spare the trello api from calls to blist directly
+def share_group(card_id_list):
+    for group_id, name in groups.iteritems():
+        if group_id == card_id_list:
+            return name
+    
 # -- main --
 
 # arguments
@@ -408,6 +422,7 @@ parser.add_argument(
 
 args = parser.parse_args()
 
+# Trello
 client = TrelloClient(
   api_key = settings_api_key,
   api_secret = settings_api_secret,
@@ -416,8 +431,14 @@ client = TrelloClient(
 )
 
 board = client.get_board("dKKiaWEP")
-blists = board.all_lists
-cards = board.all_cards
+blists = copy.deepcopy(board.all_lists)
+cards = copy.deepcopy(board.all_cards)
+
+# in preparation, copy the list details, must be a better way to do this
+groups = {}
+for blist in blists():
+    groups[str(blist.id)] = str(blist.name)
+
 
 # get a full report from all lists
 if args.totals:
