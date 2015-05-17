@@ -85,7 +85,7 @@ def members_report (cards):
         wr = csv.writer(outputfile, quoting=csv.QUOTE_ALL)
 
         # write the header
-        file_header = ["Name","Email","Fruit","Cheese","Value-added","Volunteer","Level", "Membership status","List","Total","Payment by"]
+        file_header = ["Name","Email","Fruit","Cheese","Value-added","Volunteer","Level", "Membership status","List","Partner 1", "Partner 2", "Partner 3", "Total","Payment by"]
         wr.writerow(file_header)
     
     # go through all cards
@@ -123,17 +123,13 @@ def members_report (cards):
             else:
                 details.append("Unconfirmed")
             
-            # get Trello list 
+            # Trello list 
             details.append(share_group(card.idList))
             
-            # get other members (up to three)
-            for item in card.description.split("\n"):
-                if "Share partner #1 - name" in item:
-                    print item.split("Share partner #1 - name",1)[1].strip() ## clean this up with a function to report out member names,
-                                                                             ## with no trailing spaces or colons, for all three possible
-                                                                             ## share partners.
-            
-            # details.append(str([card.description]))
+            # other members (up to three)
+            details.append(name_extract(card.description, "Share partner #1 - name"))
+            details.append(name_extract(card.description, "Share partner #2 - name"))
+            details.append(name_extract(card.description, "Share partner #3 - name"))
             
             #total membership amount
             if len(name_list) > 1 :
@@ -373,7 +369,16 @@ def share_group(card_id_list):
     for group_id, name in groups.iteritems():
         if group_id == card_id_list:
             return name
-    
+
+# get and clean up share members
+def name_extract(card_description, name_label):
+    for item in card_description.split("\n"):
+        if name_label in item:
+            clean_name = item.split(name_label,1)[1]
+            if ":" in clean_name:
+                clean_name = clean_name.split(":",1)[1]
+            return clean_name.strip()
+
 # -- main --
 
 # arguments
