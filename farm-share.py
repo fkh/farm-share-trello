@@ -85,7 +85,12 @@ def members_report (cards):
         wr = csv.writer(outputfile, quoting=csv.QUOTE_ALL)
 
         # write the header
-        file_header = ["Name","Email","Fruit","Cheese","Value-added","Volunteer","Level", "Membership status","List","Partner 1", "Partner 2", "Partner 3", "Total","Payment by"]
+        file_header = ["Name","Email","Fruit","Cheese","Value-added",
+            "Volunteer","Level", "Membership status","List",
+            "Partner 1", "Partner 1 email",
+            "Partner 2", "Partner 2 email", 
+            "Partner 3", "Partner 3 email",
+            "Total","Payment by"]
         wr.writerow(file_header)
     
     # go through all cards
@@ -128,8 +133,11 @@ def members_report (cards):
             
             # other members (up to three)
             details.append(name_extract(card.description, "Share partner #1 - name"))
+            details.append(name_extract(card.description, "Share partner #1 - email"))
             details.append(name_extract(card.description, "Share partner #2 - name"))
+            details.append(name_extract(card.description, "Share partner #2 - email"))
             details.append(name_extract(card.description, "Share partner #3 - name"))
+            details.append(name_extract(card.description, "Share partner #3 - email"))
             
             #total membership amount
             if len(name_list) > 1 :
