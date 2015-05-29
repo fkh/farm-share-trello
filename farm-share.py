@@ -85,18 +85,22 @@ def members_report (cards):
         wr = csv.writer(outputfile, quoting=csv.QUOTE_ALL)
 
         # write the header
-        file_header = ["Name", "Email", "Level", "Fruit", "Cheese", "Value-added",
+        file_header = ["URL", "Name", "Email", 
+            "Level", "Fruit", "Cheese", "Value-added",
             "Volunteer", "Membership status","List",
             "Partner 1", "Partner 1 email",
             "Partner 2", "Partner 2 email", 
             "Partner 3", "Partner 3 email",
-            "Total","Payment by"]
+            "Total","Special","Payment by"]
         wr.writerow(file_header)
     
     # go through all cards
         for card in cards():
             details = []
             member_level = None
+            
+            # card url
+            details.append(card.url)
             
             # get name after removing total cost info from card title
             name_list = card.name.split("$", 1)
@@ -152,7 +156,17 @@ def members_report (cards):
             #total membership amount
             if len(name_list) > 1 :
                 details.extend([name_list[1]])
+            else: #probably a level 1 with no payment details in the title
+                details.extend("")
             
+            # mark special cases
+            special_marker = None
+            for label in card.labels:
+                this_label = label.get("name")
+                if (this_label == "special"):
+                    special_marker = "Special"
+            details.append(special_marker)
+
             # check/card payment last because not everyone has this label set
             for label in card.labels:
                 this_label = label.get("name")
