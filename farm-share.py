@@ -85,8 +85,8 @@ def members_report (cards):
         wr = csv.writer(outputfile, quoting=csv.QUOTE_ALL)
 
         # write the header
-        file_header = ["Name","Email","Fruit","Cheese","Value-added",
-            "Volunteer","Level", "Membership status","List",
+        file_header = ["Name", "Email", "Level", "Fruit", "Cheese", "Value-added",
+            "Volunteer", "Membership status","List",
             "Partner 1", "Partner 1 email",
             "Partner 2", "Partner 2 email", 
             "Partner 3", "Partner 3 email",
@@ -96,6 +96,7 @@ def members_report (cards):
     # go through all cards
         for card in cards():
             details = []
+            member_level = None
             
             # get name after removing total cost info from card title
             name_list = card.name.split("$", 1)
@@ -108,19 +109,28 @@ def members_report (cards):
             else:
                 details.append(" ")
 
-            # get share details
-            details.append(share_finder(card.description, "Fruit share, 18 weeks", "Fruit"))
-            details.append(share_finder(card.description, "Cheese share, 18 weeks", "Cheese"))
-            details.append(share_finder(card.description, "Value-added share, 25 weeks", "Extras"))
-            details.append(share_finder(card.description, "I'd rather pay $50 now", "NV"))
-
             # get level first
             for label in card.labels:
-                
                 this_label = label.get("name")
                 if this_label[0:5] == "Level":
+                    member_level = this_label
                     details.append(this_label)
+                    
             
+
+            # get share details
+            if member_level == "Level 1":
+                # look up level 1 details
+                details.append(share_finder(card.description, "Fruit ($9 each week)", "Fruit"))
+                details.append(share_finder(card.description, "Cheese ($195 up front)", "Cheese"))
+                details.append(share_finder(card.description, "Value-added share, 25 weeks", "Extras"))
+            else:
+                details.append(share_finder(card.description, "Fruit share, 18 weeks", "Fruit"))
+                details.append(share_finder(card.description, "Cheese share, 18 weeks", "Cheese"))
+                details.append(share_finder(card.description, "Value-added share, 25 weeks", "Extras"))
+            
+            
+            details.append(share_finder(card.description, "I'd rather pay $50 now", "NV"))
 
             # membership status
             if card.idList in confirmed:
