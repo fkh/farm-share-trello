@@ -91,7 +91,7 @@ def members_report (cards):
             "Partner 1", "Partner 1 email",
             "Partner 2", "Partner 2 email", 
             "Partner 3", "Partner 3 email",
-            "Total","Special","Payment by"]
+            "Total","Special","SNAP","Payment by"]
         wr.writerow(file_header)
     
     # go through all cards
@@ -165,6 +165,14 @@ def members_report (cards):
                 this_label = label.get("name")
                 if (this_label == "special"):
                     special_marker = "Special"
+            details.append(special_marker)
+
+            # mark SNAP recipients
+            special_marker = None
+            for label in card.labels:
+                this_label = label.get("name")
+                if (this_label == "SNAP"):
+                    special_marker = "SNAP"
             details.append(special_marker)
 
             # check/card payment last because not everyone has this label set
